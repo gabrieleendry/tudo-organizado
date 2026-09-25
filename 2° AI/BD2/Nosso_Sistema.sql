@@ -1,4 +1,4 @@
--- set - quak eu quero alterar, where- onde eu quer altrerar
+drop database nosso_sistema;
 
 create database nosso_sistema;
 use nosso_sistema;
@@ -13,6 +13,12 @@ create table Cliente(
 	uf char(2),
 	ie char(12)
 );
+create table Vendedor(
+	cod_ven numeric(4) primary key,
+	salario_fixo numeric(10,2),
+	comissao char(1),
+	nome_ven varchar(20) not null
+);
 
 
 create table Pedido(
@@ -23,12 +29,6 @@ create table Pedido(
 );
 select * from Vendedor;
 
-create table Vendedor(
-	cod_ven numeric(4) primary key,
-	salario_fixo numeric(10,2),
-	comissao char(1),
-	nome_ven varchar(20) not null
-);
 
 
 create table Produto(
@@ -180,3 +180,189 @@ select * from Item_pedido where cod_prod = 77 or cod_prod = 53 or cod_prod = 31 
 -- 25. Exibe o nome dos clientes que possuam as letras “o” e “e” em seu nome.
 
 
+
+
+
+-- 7. Clientes com código entre 200 e 800 e do estado de SP
+select *
+from Cliente
+where cod_clie between 200 and 800
+  and uf = 'SP';
+
+
+-- 8. Produtos do pedido 148
+select *
+from Item_pedido
+where num_pedido = 148;
+
+
+-- 9. Clientes com código entre 130 e 390, em ordem crescente
+select *
+from Cliente
+where cod_clie between 130 and 390
+order by cod_clie asc;
+
+
+-- 10. Clientes com nomes entre B e R
+select nome_clie
+from Cliente
+where nome_clie >= 'B'
+  and nome_clie <= 'R';
+
+
+-- 11. Nome e estado dos clientes de SP, MG e RJ
+select nome_clie, uf
+from Cliente
+where uf in ('SP', 'MG', 'RJ');
+
+
+-- 12. Descrição e preço dos produtos das unidades BAR, L e G
+select descricao, val_unit
+from Produto
+where unidade in ('BAR', 'L', 'G');
+
+
+-- 13. Vendedores de código 101, 213 e 310
+select *
+from Vendedor
+where cod_ven in (101, 213, 310);
+
+
+-- 14. Clientes de código 20 até 180 e 250 até 720
+select cod_clie, nome_clie
+from Cliente
+where cod_clie between 20 and 180
+   or cod_clie between 250 and 720;
+
+
+-- 15. Pedidos que não possuem 25, 53 ou 78
+--     e possuem 77 e 13
+select num_pedido
+from Item_pedido
+group by num_pedido
+having sum(case when cod_prod in (25, 53, 78) then 1 else 0 end) = 0
+   and sum(case when cod_prod = 77 then 1 else 0 end) > 0
+   and sum(case when cod_prod = 13 then 1 else 0 end) > 0;
+
+
+-- 16. Clientes de código 20 até 350 e estados SP, MG ou RJ
+select cod_clie, nome_clie
+from Cliente
+where cod_clie between 20 and 350
+  and uf in ('SP', 'MG', 'RJ');
+
+
+-- 17. Nome terminando com "a"
+select nome_clie
+from Cliente
+where nome_clie like '%a';
+
+
+-- 18. Nome começando com "a"
+select nome_clie
+from Cliente
+where nome_clie like 'a%';
+
+
+-- 19. Nome contendo a letra "e"
+select nome_clie
+from Cliente
+where nome_clie like '%e%';
+
+
+-- 20. Nome com a letra "o" na segunda posição
+select nome_clie
+from Cliente
+where nome_clie like '_o%';
+
+
+-- 21. Nome com exatamente 5 caracteres
+select nome_clie
+from Cliente
+where nome_clie like '_____';
+
+
+-- 22. Vendedores que não possuem a letra "a"
+select *
+from Vendedor
+where nome_ven not like '%a%';
+
+
+-- 23. Vendedores que possuem duas letras "o"
+select *
+from Vendedor
+where lower(nome_ven) like '%o%o%';
+
+
+-- 24. Vendedores cuja penúltima letra é "i"
+select *
+from Vendedor
+where nome_ven like '%i_';
+
+
+-- 25. Clientes que possuem as letras "o" e "e"
+select nome_clie
+from Cliente
+where lower(nome_clie) like '%o%'
+  and lower(nome_clie) like '%e%';
+
+
+-- =========================================================
+-- EXERCÍCIOS EXTRAS
+-- =========================================================
+
+-- 1. Mostrar o pedido e a descrição dos produtos que ele possui
+select ip.num_pedido, p.descricao
+from Item_pedido ip
+join Produto p
+  on ip.cod_prod = p.cod_prod
+order by ip.num_pedido;
+
+
+-- 2. Produtos comprados por cada cliente
+select c.nome_clie, p.descricao
+from Cliente c
+join Pedido pe
+  on c.cod_clie = pe.cod_clie
+join Item_pedido ip
+  on pe.num_pedido = ip.num_pedido
+join Produto p
+  on ip.cod_prod = p.cod_prod
+order by c.nome_clie;
+
+
+-- 3. Produtos vendidos por cada vendedor
+select v.nome_ven, p.descricao
+from Vendedor v
+join Pedido pe
+  on v.cod_ven = pe.cod_ven
+join Item_pedido ip
+  on pe.num_pedido = ip.num_pedido
+join Produto p
+  on ip.cod_prod = p.cod_prod
+order by v.nome_ven;
+
+
+-- 4. Qual cliente comprou chocolate?
+select distinct c.nome_clie
+from Cliente c
+join Pedido pe
+  on c.cod_clie = pe.cod_clie
+join Item_pedido ip
+  on pe.num_pedido = ip.num_pedido
+join Produto p
+  on ip.cod_prod = p.cod_prod
+where p.descricao = 'Chocolate';
+
+
+-- 5. Qual vendedor vendeu mais chocolate?
+select v.nome_ven, sum(ip.quant) as quantidade_chocolate from Vendedor v
+inner join Pedido pe
+  on v.cod_ven = pe.cod_ven
+inner join Item_pedido ip
+  on pe.num_pedido = ip.num_pedido
+inner join Produto p
+  on ip.cod_prod = p.cod_prod
+where p.descricao = 'Chocolate'
+group by v.cod_ven, v.nome_ven
+order by quantidade_chocolate desc;
